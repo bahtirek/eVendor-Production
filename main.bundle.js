@@ -1218,10 +1218,11 @@ var Signup = (function () {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Vendor; });
 var Vendor = (function () {
-    function Vendor(name, id, submit) {
+    function Vendor(name, id, submit, shopList) {
         this.name = name;
         this.id = id;
         this.submit = submit;
+        this.shopList = shopList;
     }
     return Vendor;
 }());
@@ -4158,17 +4159,19 @@ var ShowOrderComponent = (function () {
         this.toggleVendors(0);
     };
     ShowOrderComponent.prototype.toggleVendors = function (index) {
-        for (var i = 0; i < this.order.length; i++) {
-            if (i == index) {
-                this.order[i]['active'] = true;
+        if (this.order != undefined && this.order.length > 0) {
+            for (var i = 0; i < this.order.length; i++) {
+                if (i == index) {
+                    this.order[i]['active'] = true;
+                }
+                else {
+                    this.order[i]['active'] = false;
+                }
             }
-            else {
-                this.order[i]['active'] = false;
-            }
+            this.orderByVendor.items = this.order[index]['items'];
+            this.orderByVendor['note'] = this.order[index]['note'];
+            this.orderByVendor['name'] = this.order[index]['name'];
         }
-        this.orderByVendor.items = this.order[index]['items'];
-        this.orderByVendor['note'] = this.order[index]['note'];
-        this.orderByVendor['name'] = this.order[index]['name'];
     };
     ShowOrderComponent.prototype.update = function () {
         this.updateOrder.emit();
@@ -4387,7 +4390,8 @@ var AddVendorComponent = (function () {
     }
     AddVendorComponent.prototype.ngOnInit = function () { };
     AddVendorComponent.prototype.addVendor = function () {
-        this.add.emit(this.vendorName);
+        this.add.emit({ vendorName: this.vendorName, shopList: this.shopList });
+        this.shopList = false;
         this.vendorName = "";
     };
     return AddVendorComponent;
@@ -4443,6 +4447,7 @@ var ShowVendorComponent = (function () {
     function ShowVendorComponent() {
         this.editVendor = false;
         this.vendorName = '';
+        this.shopList = false;
         this.remove = new __WEBPACK_IMPORTED_MODULE_0__angular_core__["EventEmitter"]();
         this.save = new __WEBPACK_IMPORTED_MODULE_0__angular_core__["EventEmitter"]();
     }
@@ -4453,12 +4458,22 @@ var ShowVendorComponent = (function () {
     };
     ShowVendorComponent.prototype.saveVendor = function () {
         this.vendor.name = this.vendorName;
-        this.save.emit({ name: this.vendor.name, id: this.vendor.id });
+        this.save.emit({ name: this.vendor.name, id: this.vendor.id, shopList: this.shopList });
         this.editVendor = false;
     };
     ShowVendorComponent.prototype.edit = function (name) {
+        console.log(this.vendor);
+        console.log(this.shopList);
         this.editVendor = true;
         this.vendorName = name;
+        if (this.vendor.id == this.vendor.shopList) {
+            this.shopList = true;
+            console.log(this.shopList);
+        }
+        else {
+            this.shopList == false;
+            console.log(this.shopList);
+        }
     };
     ShowVendorComponent.prototype.cancel = function () {
         this.editVendor = false;
@@ -4549,10 +4564,12 @@ var VendorComponent = (function () {
     };
     ;
     //
-    VendorComponent.prototype.addVendor = function (vendorName) {
+    VendorComponent.prototype.addVendor = function (newVendor) {
         var _this = this;
+        var vendorName = newVendor.vendorName;
+        var shopList = newVendor.shopList;
         console.log(vendorName);
-        this.http.post(this.url.vendor + '?token=' + this.auth.token, { name: vendorName })
+        this.http.post(this.url.vendor + '?token=' + this.auth.token, { name: vendorName, shopList: shopList })
             .subscribe(function (result) {
             _this.getVendors();
         }, function (error) {
@@ -4583,7 +4600,7 @@ var VendorComponent = (function () {
         });
     };
     VendorComponent.prototype.updateVendor = function (data) {
-        this.http.put(this.url.vendor + '/' + data.id + '?token=' + this.auth.token, { name: data.name })
+        this.http.put(this.url.vendor + '/' + data.id + '?token=' + this.auth.token, { name: data.name, shopList: data.shopList })
             .subscribe(function (result) {
             console.log(result);
         });
@@ -5226,7 +5243,7 @@ exports = module.exports = __webpack_require__(3)(false);
 
 
 // module
-exports.push([module.i, "\r\n.btn-cust{\r\n    border: 1px solid #81DCEF;\r\n    background: white;\r\n    color: #1C79A9;\r\n    padding:  5px 10px 5px 10px;\r\n}\r\n.btn-cust:active{\r\n    background:#9ECFE9;\r\n    color: white;\r\n}", ""]);
+exports.push([module.i, "\r\n.btn-cust{\r\n    border: 1px solid #81DCEF;\r\n    background: white;\r\n    color: #1C79A9;\r\n    padding:  5px 10px 5px 10px;\r\n}\r\n.btn-cust:active{\r\n    background:#9ECFE9;\r\n    color: white;\r\n}\r\n\r\n.form-check-label {\r\n    padding-left: 2.25rem;\r\n}\r\n\r\n", ""]);
 
 // exports
 
@@ -5243,7 +5260,7 @@ exports = module.exports = __webpack_require__(3)(false);
 
 
 // module
-exports.push([module.i, "    ", ""]);
+exports.push([module.i, ".form-check-label {\r\n    padding-left: 3rem;\r\n}", ""]);
 
 // exports
 
@@ -5375,7 +5392,7 @@ module.exports = "<div class=\"cards-wrap\">\n\n    <div class=\"card-deck\">\n 
 /* 410 */
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"row justify-content-center\">\n  <div class=\"col-md-10\">\n    <!-- place order component -->\n    <div *ngIf=\"!showOrder\">\n      <div class=\"order-buttons text-left\">\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"by='byOrder'\">By Order</button>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"arrange('byVendor')\">By Vendor</button>\n        <button *ngIf=\"(groups!==undefined && groups.length>0)\" type=\"button\" class=\"btn btn-link\" (click)=\"arrange('byGroup')\">By Group</button>\n      </div>\n      <ng-container *ngIf=\"(by == 'byOrder'); else elseTemplate\"><!-- by Order -->\n        <div class=\"card\">\n          <div class=\"card-header\">\n            <h5 class=\"link\">By order</h5>\n          </div>\n          <div class=\"card-block\">\n            <order-table [itemList]=\"itemList\" [vendors]=\"vendors\" [by]=\"by\" [order]=\"order\" [isReview]=\"isReview\" \n              (changeVendor)=\"changeVendor($event)\" (checkCompare)=\"checkCompareEmitFromTable()\" (checkQuantity)=\"checkQuantityEmitFromTable()\"></order-table>\n          </div>\n        </div>\n      </ng-container>\n      <ng-template #elseTemplate><!-- by Vendor or By Group -->\n        <div role=\"tablist\" aria-multiselectable=\"true\">\n          <div class=\"card\" *ngFor=\"let itemlist of itemListBy; let byInd=index\">\n            <a data-toggle=\"collapse\" data-parent=\"#accordion\" href=\"#{{'i'+itemlist.id+'i'}}\" aria-expanded=\"true\">\n              <div class=\"card-header\" role=\"tab\" id=\"headingOne\">\n                <h5 class=\"mb-0\">\n                  {{itemlist.name}}\n                </h5>\n              </div>\n            </a>\n            <div id=\"{{'i'+itemlist.id+'i'}}\" class=\"collapse\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\n              <div class=\"card-block\">\n                <order-table [itemList]=\"itemlist.items\" [vendors]=\"vendors\" [by]=\"by\" [order]=\"order\" [isReview]=\"isReview\"\n                  (changeVendor)=\"changeVendor($event)\" (checkCompare)=\"checkCompareEmitFromTable()\" (checkQuantity)=\"checkQuantityEmitFromTable()\">\n                </order-table>\n                  <div *ngIf=\"by=='byVendor'\" class=\"form-group order-buttons\">\n                      <label for=\"note\">Note for {{itemlist.name}}</label>\n                      <textarea class=\"form-control\" #textarea rows=\"4\" (keyup)=\"setVendorNote(textarea.value, byInd)\">{{itemlist.vendorNote}}</textarea>\n                      \n                    </div>\n              </div>\n            </div>\n          </div>\n        </div>\n      </ng-template>\n\n      <div class=\"order-buttons text-left\" *ngIf=\"!isReview\">\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"review()\">Review</button>\n        <button type=\"button\" class=\"btn btn-link text-danger\" (click)=\"clear()\">Clear</button>\n      </div>\n      <div class=\"order-buttons text-left\" *ngIf=\"isReview\">\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"review()\">Continue ordering</button>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"comparesuspend()\" [disabled]=\"!showPriceButton || !showSubmitButton\">Price check and Suspend</button>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"suspend()\" [disabled]=\"!showSubmitButton\">Suspend</button>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"compare()\" [disabled]=\"!showPriceButton\">Price check</button>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"getVendorsForSubmitModal()\" [disabled]=\"!showSubmitButton\">Submit</button>\n      </div>\n    </div>\n    <!-- show order component -->\n    <div class=\"show-order\">\n      <show-order *ngIf=\"showOrder\" [order]=recentOrder></show-order>\n    </div>\n  </div>           \n  <modal (delete)=\"deleteSuspenedOrder()\" (ok)=\"loadSuspendedOrder()\" (submitVendors)= \"submitOrder($event)\" [modal]=\"modal\" [vendors]=\"vendorsForSubmitModal\"></modal>\n  <spinner [spinner]=\"spinner\"></spinner>\n  <!--<submitModal (submit)=\"submit($event)\" (emitSubmitModal)=\"showSubModal($event)\" [showSubmitModal]=\"showSubmitModal\"></submitModal>\n  -->\n  </div>\n\n"
+module.exports = "<div class=\"row justify-content-center\">\n  <div class=\"col-md-10\">\n    <!-- place order component -->\n    <div *ngIf=\"!showOrder\">\n      <div class=\"order-buttons text-left\">\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"by='byOrder'\">By Order</button>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"arrange('byVendor')\">By Vendor</button>\n        <button *ngIf=\"(groups!==undefined && groups.length>0)\" type=\"button\" class=\"btn btn-link\" (click)=\"arrange('byGroup')\">By Group</button>\n      </div>\n      <ng-container *ngIf=\"(by == 'byOrder'); else elseTemplate\"><!-- by Order -->\n        <div class=\"card\">\n          <div class=\"card-header\">\n            <h5 class=\"link\">By order</h5>\n          </div>\n          <div class=\"card-block\">\n            <order-table [itemList]=\"itemList\" [vendors]=\"vendors\" [by]=\"by\" [order]=\"order\" [isReview]=\"isReview\" \n              (changeVendor)=\"changeVendor($event)\" (checkCompare)=\"checkCompareEmitFromTable()\" (checkQuantity)=\"checkQuantityEmitFromTable()\"></order-table>\n          </div>\n        </div>\n      </ng-container>\n      <ng-template #elseTemplate><!-- by Vendor or By Group -->\n        <div role=\"tablist\" aria-multiselectable=\"true\">\n          <div class=\"card\" *ngFor=\"let itemlist of itemListBy; let byInd=index\">\n            <a data-toggle=\"collapse\" data-parent=\"#accordion\" href=\"#{{'i'+itemlist.id+'i'}}\" aria-expanded=\"true\">\n              <div class=\"card-header\" role=\"tab\" id=\"headingOne\">\n                <h5 class=\"mb-0\">\n                  {{itemlist.name}}\n                </h5>\n              </div>\n            </a>\n            <div id=\"{{'i'+itemlist.id+'i'}}\" class=\"collapse\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\n              <div class=\"card-block\">\n                <order-table [itemList]=\"itemlist.items\" [vendors]=\"vendors\" [by]=\"by\" [order]=\"order\" [isReview]=\"isReview\"\n                  (changeVendor)=\"changeVendor($event)\" (checkCompare)=\"checkCompareEmitFromTable()\" (checkQuantity)=\"checkQuantityEmitFromTable()\">\n                </order-table>\n                  <div *ngIf=\"by=='byVendor'\" class=\"form-group order-buttons\">\n                      <label for=\"note\">Note for {{itemlist.name}}</label>\n                      <textarea class=\"form-control\" #textarea rows=\"4\" (keyup)=\"setVendorNote(textarea.value, byInd)\">{{itemlist.vendorNote}}</textarea>\n                      \n                    </div>\n              </div>\n            </div>\n          </div>\n        </div>\n      </ng-template>\n\n      <div class=\"order-buttons text-left\" *ngIf=\"!isReview\">\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"review()\">Review</button>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"suspend()\">Save</button>\n        <button type=\"button\" class=\"btn btn-link text-danger\" (click)=\"clear()\">Clear</button>\n        \n      </div>\n      <div class=\"order-buttons text-left\" *ngIf=\"isReview\">\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"review()\">Continue ordering</button>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"comparesuspend()\" [disabled]=\"!showPriceButton || !showSubmitButton\">Price check and Save</button>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"suspend()\" [disabled]=\"!showSubmitButton\">Save</button>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"compare()\" [disabled]=\"!showPriceButton\">Price check</button>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"getVendorsForSubmitModal()\" [disabled]=\"!showSubmitButton\">Submit</button>\n      </div>\n    </div>\n    <!-- show order component -->\n    <div class=\"show-order\">\n      <show-order *ngIf=\"showOrder\" [order]=recentOrder></show-order>\n    </div>\n  </div>           \n  <modal (delete)=\"deleteSuspenedOrder()\" (ok)=\"loadSuspendedOrder()\" (submitVendors)= \"submitOrder($event)\" [modal]=\"modal\" [vendors]=\"vendorsForSubmitModal\"></modal>\n  <spinner [spinner]=\"spinner\"></spinner>\n  <!--<submitModal (submit)=\"submit($event)\" (emitSubmitModal)=\"showSubModal($event)\" [showSubmitModal]=\"showSubmitModal\"></submitModal>\n  -->\n  </div>\n\n"
 
 /***/ }),
 /* 411 */
@@ -5423,19 +5440,19 @@ module.exports = "\n<div class=\"main\">\n\n      <nav class=\"navbar navbar-tog
 /* 418 */
 /***/ (function(module, exports) {
 
-module.exports = "<form >\n    <div class=\"form-group row\">\n      <label class=\"col-sm-2 col-form-label\" for=\"vendor\">Vendor </label>\n      <div class=\"col-sm-10\">\n        <input class=\"form-control\" type=\"text\" name=\"vendor\" required  [(ngModel)]=\"vendorName\"/>\n      </div>\n    </div>\n    \n    <div class=\"form-group\">\n      <div>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"addVendor()\">Save</button>\n      </div>\n    </div>\n  </form>\n"
+module.exports = "<div>\n    <div class=\"form-group row\">\n      <label class=\"col-sm-2 col-form-label\" for=\"vendor\">Vendor </label>\n      <div class=\"col-sm-10\">\n        <input class=\"form-control\" type=\"text\" name=\"vendor\" required  [(ngModel)]=\"vendorName\"/>\n      </div>\n    </div>\n    <div class=\"form-group row pt-2\">\n        <div class=\"form-check form-check-inline\">\n            <label class=\"form-check-label\">\n                  <input class=\"form-check-input\" type=\"checkbox\" [(ngModel)]=\"shopList\">\n                  Shoping List  <span class=\"text-muted\">  (Order that not for vendor's sales representative)</span>\n                </label>\n          </div>\n          \n    </div> \n    \n    \n    <div class=\"form-group\">\n      <div>\n        <button type=\"button\" class=\"btn btn-link\" (click)=\"addVendor()\">Save</button>\n      </div>\n    </div>\n</div>\n"
 
 /***/ }),
 /* 419 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\n<div class=\"card mb-3\">\n  <div class=\"card-block\">\n    <h4 class=\"card-title\">{{vendor.name}}</h4>\n    <button type=\"button\" class=\"btn btn-link btn-sm\" (click)=\"edit(vendor.name)\">Edit</button>\n    <button type=\"button\" class=\"btn btn-link btn-sm\" (click)=\"removeVendor(vendor.id, vendor.name)\">Remove</button>\n    <div *ngIf=\"editVendor\">\n      <hr>\n        <div class=\"form-group row\">\n            <label class=\"col-sm-2 col-form-label col-form-label-sm\">Vendor</label>\n            <div class=\"col-sm-10\">\n                <input class=\"form-control\" type=\"text\" [(ngModel)]=\"vendorName\">\n            </div>\n            <button type=\"button\" class=\"btn btn-link\" (click)=\"saveVendor()\" >Save</button>\n            <button type=\"button\" class=\"btn btn-link\" (click)=\"cancel()\" >Cancel</button>\n          </div>\n    </div>\n  </div> \n</div>\n\n\n"
+module.exports = "\n\n<div class=\"card mb-3\">\n  <div class=\"card-block\">\n    <h4 class=\"card-title\">{{vendor.name}}</h4>\n    <button type=\"button\" class=\"btn btn-link btn-sm\" (click)=\"edit(vendor.name)\">Edit</button>\n    <button type=\"button\" class=\"btn btn-link btn-sm\" (click)=\"removeVendor(vendor.id, vendor.name)\">Remove</button>\n    <div *ngIf=\"editVendor\">\n      <hr>\n        <div class=\"form-group row\">\n            <label class=\"col-sm-2 col-form-label col-form-label-sm\">Vendor</label>\n            <div class=\"col-sm-10\">\n                <input class=\"form-control\" type=\"text\" [(ngModel)]=\"vendorName\">\n            </div>\n            <div class=\"form-group row pt-2\">\n              <div class=\"form-check form-check-inline\">\n                  <label class=\"form-check-label\">\n                        <input class=\"form-check-input\" type=\"checkbox\" [(ngModel)]=\"shopList\">\n                        Shoping List  <span class=\"text-muted\">  (Order that not for vendor's sales representative)</span>\n                      </label>\n                </div>\n            </div>\n            \n            \n          </div>\n          <button type=\"button\" class=\"btn btn-link\" (click)=\"saveVendor()\" >Save</button>\n          <button type=\"button\" class=\"btn btn-link\" (click)=\"cancel()\" >Cancel</button>\n    </div>\n  </div> \n</div>\n\n\n"
 
 /***/ }),
 /* 420 */
 /***/ (function(module, exports) {
 
-module.exports = "\n  <div class=\"row main justify-content-center\">\n   \n    <div class=\"col-md-6 col-sm-8\">\n        <h4>Add new vendor</h4> \n      <add-vendor (add)=\"addVendor($event)\" [vendorName]=\"vendorName\"></add-vendor>\n      <hr class=\"mb-0\">\n      <h4>Vendors list</h4>\n    <div *ngIf=\"vendors\">\n        <div *ngFor=\"let vendor of vendors; index as i\">\n            <show-vendor [vendor]=\"vendor\" (save)=\"updateVendor($event)\" (remove)=\"removeVendor($event, i)\"></show-vendor>\n        </div>\n    </div>\n    </div>\n  </div>\n  \n  <modal [modal]=\"modal\" ></modal>"
+module.exports = "\n  <div class=\"row main justify-content-center\">\n   \n    <div class=\"col-lg-6 col-md-10 col-sm-8\">\n        <h4>Add new vendor</h4> \n      <add-vendor (add)=\"addVendor($event)\" [vendorName]=\"vendorName\"></add-vendor>\n      <hr class=\"mb-0\">\n      <h4>Vendors list</h4>\n    <div *ngIf=\"vendors\">\n        <div *ngFor=\"let vendor of vendors; index as i\">\n            <show-vendor [vendor]=\"vendor\" (save)=\"updateVendor($event)\" (remove)=\"removeVendor($event, i)\"></show-vendor>\n        </div>\n    </div>\n    </div>\n  </div>\n  \n  <modal [modal]=\"modal\" ></modal>"
 
 /***/ }),
 /* 421 */,
